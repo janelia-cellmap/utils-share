@@ -1,0 +1,14 @@
+# input_file : '/nrs/cellmap/zouinkhim/predictions/jrc_mus-liver-zon-1/jrc_mus-liver-zon-1.n5'
+# output_file : '/nrs/cellmap/zouinkhim/predictions/jrc_mus-liver-zon-1/tmp_test_distribute.n5'
+# dataset : 'mito/mito'
+# out_dataset : 'mito/postprocessed_mito'
+
+# input_file : '/nrs/cellmap/pattonw/predictions/jrc_mus-liver-zon-1/jrc_mus-liver-zon-1.n5'
+# output_file : '/nrs/cellmap/zouinkhim/predictions/jrc_mus-liver-zon-1/tmp_test_distribute.n5'
+# dataset : 'predictions/2023-04-10/ecs/best'
+# out_dataset : 'ecs/postprocessed_ecs'
+
+input_file : '/nrs/cellmap/pattonw/predictions/jrc_mus-liver-zon-1/jrc_mus-liver-zon-1.n5'
+output_file : '/nrs/cellmap/zouinkhim/predictions/jrc_mus-liver-zon-1/tmp_test_distribute.n5'
+dataset : 'predictions/2023-04-10/mito_membrane/best'
+out_dataset : 'mito_membrane/postprocessed_mito_membrane'
