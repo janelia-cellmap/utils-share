@@ -24,6 +24,7 @@ import os
 # @click.argument('tif_path', type=click.Path())
 # @click.option('--invert', is_flag=True)
 def zarr_to_tif(in_path, in_name, out_path, out_name, chunk_shape=None, invert=False):
+    raise NotImplementedError
     print(f"Loading {in_path}:{in_name} ...")
     in_ds = open_ds(in_path, in_name, mode="r")
 

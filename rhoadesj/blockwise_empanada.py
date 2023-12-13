@@ -19,14 +19,19 @@ out_path = "{in_path_base}/empanada/predictions_full.zarr".format(
 )
 out_name = "mito_pred"
 
-block_size = (4096, 4096, 4096)
-context = (512, 512, 512)
+# block_size = (4096, 4096, 4096)
+# context = (512, 512, 512)
+# block_size = (2048, 2048, 2048)
+# context = (256, 256, 256)
+block_size = (1024, 1024, 1024)
+context = (256, 256, 256)
 
-daisy_num_workers = 1
+daisy_num_workers = 64
 
 blockwise_kwargs = {
     "config": "/nrs/cellmap/rhoadesj/empanada/projects/liver-zonation/liver.yaml",
-    "num_workers": 128,
+    # "num_workers": 128,
+    "num_workers": 32,
     "fine_boundaries": True,
     "qlen": 11,
     "nms_kernel": 21,
