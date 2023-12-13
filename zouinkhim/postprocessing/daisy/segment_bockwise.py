@@ -104,29 +104,31 @@ def segment_blockwise():
 
         nodes, edges = read_cross_block_merges(tmpdir)
 
-    # TODO: move within tmpdir context
-    components = find_components(nodes, edges)
+        # TODO: move within tmpdir context
+        components = find_components(nodes, edges)
 
-    logger.debug("Num nodes: %s", len(nodes))
-    logger.debug("Num edges: %s", len(edges))
-    logger.debug("Num components: %s", len(components))
+        logger.debug("Num nodes: %s", len(nodes))
+        logger.debug("Num edges: %s", len(edges))
+        logger.debug("Num components: %s", len(components))
 
-    write_roi = daisy.Roi((0,) * len(write_size), write_size)
-    read_roi = write_roi
-    total_roi = array_in.roi
+        write_roi = daisy.Roi((0,) * len(write_size), write_size)
+        read_roi = write_roi
+        total_roi = array_in.roi
 
-    task = daisy.Task(
-        "relabel_blockwise",
-        total_roi,
-        read_roi,
-        write_roi,
-        # TODO: relabel_in_block in separate file to take command line tmpdir argument
-        process_function=lambda b: relabel_in_block(array_out, nodes, components, b),
-        num_workers=num_workers,
-        fit="shrink",
-    )
+        task = daisy.Task(
+            "relabel_blockwise",
+            total_roi,
+            read_roi,
+            write_roi,
+            # TODO: relabel_in_block in separate file to take command line tmpdir argument
+            process_function=lambda b: relabel_in_block(
+                array_out, nodes, components, b
+            ),
+            num_workers=num_workers,
+            fit="shrink",
+        )
 
-    daisy.run_blockwise([task])
+        daisy.run_blockwise([task])
 
 
 # def segment_in_block(
