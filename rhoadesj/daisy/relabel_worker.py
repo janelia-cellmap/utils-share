@@ -1,5 +1,6 @@
 from glob import glob
 import os
+import sys
 from config import *
 import daisy
 from funlib.segment.arrays.impl import find_components
@@ -8,35 +9,28 @@ from funlib.segment.arrays.replace_values import replace_values
 import logging
 import numpy as np
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
 
 def relabel_worker(tmpdir):
     nodes, edges = read_cross_block_merges(tmpdir)
 
     components = find_components(nodes, edges)
 
-    logger.debug("Num nodes: %s", len(nodes))
-    logger.debug("Num edges: %s", len(edges))
-    logger.debug("Num components: %s", len(components))
-
-    # write_roi = daisy.Roi((0,) * len(write_size), write_size)
-    read_roi = write_roi
-    # total_roi = array_in.roi
-    total_roi = total_roi.grow(-context, -context)
+    print(f"Num nodes: {len(nodes)}")
+    print(f"Num edges: {len(edges)}")
+    print(f"Num components: {len(components)}")
 
     client = daisy.Client()
 
     while True:
-        logger.info("getting block")
+        print("getting block")
         with client.acquire_block() as block:
             if block is None:
                 break
 
-            logger.debug("Segmenting in block %s", block)
+            print(f"Segmenting in block {block}")
 
             relabel_in_block(nodes, components, block)
+    print("worker finished.")
 
 
 def relabel_in_block(old_values, new_values, block):
@@ -56,3 +50,9 @@ def read_cross_block_merges(tmpdir):
         edges.append(b["edges"])
 
     return np.concatenate(nodes), np.concatenate(edges)
+
+
+if __name__ == "__main__":
+    # get tmpdir from command line arguments
+    args = sys.argv[1:]
+    relabel_worker(args[0])

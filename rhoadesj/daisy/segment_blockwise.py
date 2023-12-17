@@ -1,14 +1,10 @@
+import os
 import subprocess
+import time
 
 import daisy
-import glob
-import logging
-import numpy as np
-import os
 import tempfile
 from config import *
-
-logger = logging.getLogger(__name__)
 
 
 def segment_blockwise():
@@ -48,13 +44,11 @@ def segment_blockwise():
             background and will stay zero.
     """
 
-    # define in config.py
-    # write_size = daisy.Coordinate(block_size)
-    # write_roi = daisy.Roi((0,) * len(write_size), write_size)
-    # read_roi = write_roi.grow(context, context)
-    # total_roi = array_in.roi.grow(context, context)
+    print("Starting segmentation...")
+    os.system(f"ulimit -n {10 * num_workers}")
+    os.makedirs(tmp_prefix, exist_ok=True)
 
-    with tempfile.TemporaryDirectory() as tmpdir:
+    with tempfile.TemporaryDirectory(prefix=tmp_prefix) as tmpdir:
         print(f"total_roi: {total_roi}:")
         print(f"read_roi: {read_roi}:")
         print(f"write_roi: {write_roi}:")
@@ -63,8 +57,8 @@ def segment_blockwise():
             worker_id = daisy.Context.from_env()["worker_id"]
             task_id = daisy.Context.from_env()["task_id"]
 
-            logger.info(f"worker {worker_id} started for task {task_id}...")
-
+            print(f"worker {worker_id} started for task {task_id}...")
+            log_file_path = f"./daisy_logs/{task_id}/worker_{worker_id}"
             # subprocess.run(["python", "./segment_worker.py"])
 
             # do the same on a cluster node:
@@ -72,16 +66,20 @@ def segment_blockwise():
             subprocess.run(
                 [
                     "bsub",
-                    "-I",
+                    "-K",
                     "-P",
                     "cellmap",
                     "-J",
                     "segment_worker",
                     "-n",
-                    "5",
+                    str(num_cpus),
+                    "-e",
+                    f"{log_file_path}.err",
+                    "-o",
+                    f"{log_file_path}.out",
                     "python",
-                    tmpdir,
                     "./segment_worker.py",
+                    tmpdir,
                 ]
             )
 
@@ -94,15 +92,19 @@ def segment_blockwise():
             num_workers=num_workers,
             fit="shrink",
             # read_write_conflict=True,
+            timeout=10,
         )
         daisy.run_blockwise([task])
+
+        # give a second for the fist task to finish
+        time.sleep(1)
 
         def start_worker():
             worker_id = daisy.Context.from_env()["worker_id"]
             task_id = daisy.Context.from_env()["task_id"]
 
-            logger.info(f"worker {worker_id} started for task {task_id}...")
-
+            print(f"worker {worker_id} started for task {task_id}...")
+            log_file_path = f"./daisy_logs/{task_id}/worker_{worker_id}"
             # subprocess.run(["python", "./segment_worker.py"])
 
             # do the same on a cluster node:
@@ -110,16 +112,20 @@ def segment_blockwise():
             subprocess.run(
                 [
                     "bsub",
-                    "-I",
+                    "-K",
                     "-P",
                     "cellmap",
                     "-J",
-                    "relabel_worker",
+                    f"relabel_worker_{worker_id}",
                     "-n",
-                    "5",
+                    str(num_cpus),
+                    "-e",
+                    f"{log_file_path}.err",
+                    "-o",
+                    f"{log_file_path}.out",
                     "python",
-                    tmpdir,
                     "./relabel_worker.py",
+                    tmpdir,
                 ]
             )
 
@@ -131,10 +137,14 @@ def segment_blockwise():
             process_function=start_worker,
             num_workers=num_workers,
             fit="shrink",
+            timeout=10,
         )
 
         daisy.run_blockwise([task])
 
+    print("All done. Enjoy your segmentation.")
+
 
 if __name__ == "__main__":
+    os.system(f"ulimit -n {10 * num_workers}")
     segment_blockwise()

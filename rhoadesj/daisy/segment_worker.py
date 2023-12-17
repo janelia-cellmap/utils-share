@@ -4,11 +4,7 @@ from config import *
 import daisy
 from funlib.persistence import Array
 
-import logging
 import numpy as np
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 
 def segment_worker(tmpdir):
@@ -16,14 +12,14 @@ def segment_worker(tmpdir):
     client = daisy.Client()
 
     while True:
-        logger.info("getting block")
+        print("getting block")
         with client.acquire_block() as block:
             if block is None:
                 break
 
-            logger.debug("Segmenting in block %s", block)
+            print("Segmenting in block %s", block)
 
-            segmentation = segment_function(block.read_roi)
+            segmentation = segment_function(block)
 
             print("========= block %d ====== " % block.block_id[1])
             print(segmentation)
@@ -34,7 +30,7 @@ def segment_worker(tmpdir):
             segmentation += id_bump
             segmentation[segmentation == id_bump] = 0
 
-            logger.debug("Bumping segmentation IDs by %d", id_bump)
+            print("Bumping segmentation IDs by %d", id_bump)
 
             # wrap segmentation into daisy array
             segmentation = Array(
@@ -87,13 +83,13 @@ def segment_worker(tmpdir):
             zero_v = unique_pairs[:, 1] == 0
             non_zero_filter = np.logical_not(np.logical_or(zero_u, zero_v))
 
-            logger.debug("Matching pairs with neighbors: %s", unique_pairs)
+            print("Matching pairs with neighbors: %s", unique_pairs)
 
             edges = unique_pairs[non_zero_filter]
             nodes = np.unique(edges)
 
-            logger.debug("Final edges: %s", edges)
-            logger.debug("Final nodes: %s", nodes)
+            print("Final edges: %s", edges)
+            print("Final nodes: %s", nodes)
 
             np.savez_compressed(
                 os.path.join(tmpdir, "block_%d.npz" % block.block_id[1]),
@@ -101,7 +97,9 @@ def segment_worker(tmpdir):
                 edges=edges,
             )
 
-            logger.info(f"releasing block: {block}")
+            print(f"releasing block: {block}")
+
+    print("worker finished.")
 
 
 if __name__ == "__main__":
