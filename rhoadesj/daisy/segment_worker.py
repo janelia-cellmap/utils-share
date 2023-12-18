@@ -8,7 +8,6 @@ import numpy as np
 
 
 def segment_worker(tmpdir):
-    num_voxels_in_block = block_size.size
     client = daisy.Client()
 
     while True:

@@ -43,13 +43,28 @@ def segment_blockwise():
             datatype ``np.uint64``. Zero in the segmentation are considered
             background and will stay zero.
     """
+    global total_roi, read_roi, write_roi, tmp_prefix, num_workers, num_cpus, log_file_path, context
+    if os.path.exists(os.path.join(output_file, out_dataset)):
+        print("Output dataset already exists.")
+        for i in range(10):
+            print(f"Deleting in {10-i} seconds...")
+            time.sleep(1)
+        os.system(f"rm -rf {output_file}/{out_dataset}")
+    array_out = prepare_ds(
+        output_file,
+        out_dataset,
+        total_roi,
+        voxel_size=voxel_size,
+        write_size=write_size,
+        dtype=np.uint64,
+    )
 
     print("Starting segmentation...")
     os.system(f"ulimit -n {10 * num_workers}")
     os.makedirs(tmp_prefix, exist_ok=True)
 
     with tempfile.TemporaryDirectory(prefix=tmp_prefix) as tmpdir:
-        print(f"total_roi: {total_roi}:")
+        print(f"total_roi: {total_roi.grow(context, context)}:")
         print(f"read_roi: {read_roi}:")
         print(f"write_roi: {write_roi}:")
 
@@ -85,19 +100,21 @@ def segment_blockwise():
 
         task = daisy.Task(
             "segment_blockwise",
-            total_roi,
+            total_roi.grow(context, context),
             read_roi,
             write_roi,
             process_function=start_worker,
             num_workers=num_workers,
             fit="shrink",
-            # read_write_conflict=True,
+            read_write_conflict=True,
             timeout=10,
         )
         daisy.run_blockwise([task])
 
+        print("Finished segmentation. Relabeling...")
         # give a second for the fist task to finish
         time.sleep(1)
+        read_roi = write_roi
 
         def start_worker():
             worker_id = daisy.Context.from_env()["worker_id"]
@@ -137,6 +154,7 @@ def segment_blockwise():
             process_function=start_worker,
             num_workers=num_workers,
             fit="shrink",
+            read_write_conflict=True,
             timeout=10,
         )
 

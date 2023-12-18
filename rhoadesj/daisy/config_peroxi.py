@@ -18,8 +18,8 @@ output_file = (
 dataset = "peroxisome/peroxisome"
 out_dataset = "peroxisome/instance"
 
-context_padding = 10
-threshold = 0.51
+context_padding = 50
+threshold = 0.51  # 0.5
 min_size = 7e6 / (8**3)
 gaussian_kernel = 2
 
@@ -28,26 +28,28 @@ array_in = open_ds(input_file, dataset)
 voxel_size = array_in.voxel_size
 block_size = np.array(array_in.data.chunks) * np.array(voxel_size)
 write_size = daisy.Coordinate(block_size)
+context = daisy.Coordinate(np.array(voxel_size) * context_padding)
+write_roi = daisy.Roi((0,) * len(write_size), write_size)
+read_roi = write_roi.grow(context, context)
+# total_roi = array_in.roi.grow(context, context)
+# total_roi = array_in.roi
+total_roi = daisy.Roi((172800, 38400, 44800), (32000, 32000, 32000))
+# total_roi = daisy.Roi((172800, 38400, 44800), voxel_size * 512)
+
+num_voxels_in_block = (read_roi / array_in.voxel_size).size
+
 try:
     array_out = open_ds(output_file, out_dataset, mode="a")
 except KeyError:
     array_out = prepare_ds(
         output_file,
         out_dataset,
-        array_in.roi,
+        total_roi,
         voxel_size=voxel_size,
         write_size=write_size,
         dtype=np.uint64,
+        delete=True,
     )
-array_out = open_ds(output_file, out_dataset, mode="a")
-context = daisy.Coordinate(np.array(voxel_size) * context_padding)
-write_roi = daisy.Roi((0,) * len(write_size), write_size)
-read_roi = write_roi.grow(context, context)
-# total_roi = array_in.roi.grow(context, context)
-# total_roi = daisy.Roi((172800, 38400, 44800), (32000, 32000, 32000))
-total_roi = daisy.Roi((172800, 38400, 44800), voxel_size * 512)
-
-num_voxels_in_block = (read_roi / array_in.voxel_size).size
 
 
 def segment_function(block):

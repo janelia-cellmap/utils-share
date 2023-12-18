@@ -11,6 +11,8 @@ import numpy as np
 
 
 def relabel_worker(tmpdir):
+    client = daisy.Client()
+
     nodes, edges = read_cross_block_merges(tmpdir)
 
     components = find_components(nodes, edges)
@@ -18,8 +20,6 @@ def relabel_worker(tmpdir):
     print(f"Num nodes: {len(nodes)}")
     print(f"Num edges: {len(edges)}")
     print(f"Num components: {len(components)}")
-
-    client = daisy.Client()
 
     while True:
         print("getting block")
