@@ -5,13 +5,14 @@ from config import *
 import daisy
 from funlib.segment.arrays.impl import find_components
 from funlib.segment.arrays.replace_values import replace_values
+from funlib.persistence import open_ds
 
-import logging
 import numpy as np
 
 
 def relabel_worker(tmpdir):
     client = daisy.Client()
+    array_out = open_ds(output_file, out_dataset, mode="a")
 
     nodes, edges = read_cross_block_merges(tmpdir)
 
@@ -29,11 +30,11 @@ def relabel_worker(tmpdir):
 
             print(f"Segmenting in block {block}")
 
-            relabel_in_block(nodes, components, block)
+            relabel_in_block(array_out, nodes, components, block)
     print("worker finished.")
 
 
-def relabel_in_block(old_values, new_values, block):
+def relabel_in_block(array_out, old_values, new_values, block):
     a = array_out.to_ndarray(block.write_roi)
     replace_values(a, old_values, new_values, inplace=True)
     array_out[block.write_roi] = a

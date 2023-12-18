@@ -2,13 +2,14 @@ import os
 import sys
 from config import *
 import daisy
-from funlib.persistence import Array
+from funlib.persistence import Array, open_ds
 
 import numpy as np
 
 
 def segment_worker(tmpdir):
     client = daisy.Client()
+    array_out = open_ds(output_file, out_dataset, mode="a")
 
     while True:
         print("getting block")

@@ -40,7 +40,6 @@ for mask_file, mask_dataset, mask_type in mask_settings:
 voxel_size = array_in.voxel_size
 block_size = np.array(array_in.data.chunks) * np.array(voxel_size)
 write_size = daisy.Coordinate(block_size)
-array_out = open_ds(output_file, out_dataset, mode="a")
 context = daisy.Coordinate(np.array(voxel_size) * context_padding)
 
 write_roi = daisy.Roi((0,) * len(write_size), write_size)
@@ -49,17 +48,17 @@ total_roi = array_in.roi.grow(context, context)
 
 num_voxels_in_block = (read_roi / array_in.voxel_size).size
 
-try:
-    array_out = open_ds(output_file, out_dataset, mode="a")
-except KeyError:
-    array_out = prepare_ds(
-        output_file,
-        out_dataset,
-        total_roi,
-        voxel_size=voxel_size,
-        write_size=write_size,
-        dtype=np.uint64,
-    )
+# try:
+#     array_out = open_ds(output_file, out_dataset, mode="a")
+# except KeyError:
+#     array_out = prepare_ds(
+#         output_file,
+#         out_dataset,
+#         total_roi,
+#         voxel_size=voxel_size,
+#         write_size=write_size,
+#         dtype=np.uint64,
+#     )
 
 
 def segment_function(block):

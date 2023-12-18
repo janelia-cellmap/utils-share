@@ -33,17 +33,17 @@ total_roi = array_in.roi.grow(context, context)
 
 num_voxels_in_block = (read_roi / array_in.voxel_size).size
 
-try:
-    array_out = open_ds(output_file, out_dataset, mode="a")
-except KeyError:
-    array_out = prepare_ds(
-        output_file,
-        out_dataset,
-        total_roi,
-        voxel_size=voxel_size,
-        write_size=write_size,
-        dtype=np.uint64,
-    )
+# try:
+#     array_out = open_ds(output_file, out_dataset, mode="a")
+# except KeyError:
+#     array_out = prepare_ds(
+#         output_file,
+#         out_dataset,
+#         total_roi,
+#         voxel_size=voxel_size,
+#         write_size=write_size,
+#         dtype=np.uint64,
+#     )
 
 
 def segment_function(block):
