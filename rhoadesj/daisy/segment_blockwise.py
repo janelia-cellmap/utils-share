@@ -156,7 +156,6 @@ def segment_blockwise():
             process_function=start_worker,
             num_workers=num_workers,
             fit="shrink",
-            read_write_conflict=True,
             timeout=10,
         )
 
