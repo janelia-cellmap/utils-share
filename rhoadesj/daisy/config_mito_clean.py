@@ -1,31 +1,28 @@
+from scipy import ndimage
 import skimage.measure
 import skimage.filters
 import skimage.morphology
+import skimage.util
+from skimage.transform import resize
 import numpy as np
 from skimage.segmentation import watershed
 import zarr
-from scipy.ndimage import binary_fill_holes
-from skimage.transform import resize
-from skimage.morphology import dilation, cube
-import skimage.util
+from skimage.morphology import dilation, cube, remove_small_holes, ball
 from funlib.persistence import open_ds, prepare_ds
 import daisy
 
-
-input_file = (
-    "/nrs/cellmap/rhoadesj/predictions/jrc_mus-liver-zon-1/jrc_mus-liver-zon-1.n5"
-)
+input_file = "/nrs/cellmap/zouinkhim/predictions/jrc_mus-liver-zon-1/jrc_mus-liver-zon-1_postprocessed.n5"
 output_file = (
     "/nrs/cellmap/rhoadesj/predictions/jrc_mus-liver-zon-1/jrc_mus-liver-zon-1.n5"
 )
-dataset = "peroxisome/instance"
-out_dataset = "peroxisome/clean_instance_0"
+dataset = "mito/postprocessed_mito"
+out_dataset = "mito/clean_instance_0"
 
-context_padding = 10
-threshold = 0.5
-min_size = 7e6 / (8**3)
+context_padding = 50
+threshold = 0.58  # 0.5 # 0.54
+min_size = 2e7 / (8**3)
 gaussian_kernel = 2
-
+hole_area_threshold = 100
 mask_settings = [
     (
         "/nrs/cellmap/ackermand/cellmap/jrc_mus-liver-zon-1.n5",
@@ -37,50 +34,37 @@ mask_settings = [
         "/nrs/cellmap/ackermand/cellmap/jrc_mus-liver-zon-1.n5",
         "ld",
         "foreground",
-        cube(1),
-    ),
-    (
-        "/nrs/cellmap/rhoadesj/tmp_data/jrc_mus-liver-zon-1.n5",
-        "volumes/predictions/cells",
-        "background",
-        cube(10),
-    ),
-    (
-        "/nrs/cellmap/rhoadesj/predictions/jrc_mus-liver-zon-1/jrc_mus-liver-zon-1.n5",
-        "mito/clean_instance_0",
-        "foreground",
         cube(2),
     ),
+    # (
+    #     "/nrs/cellmap/rhoadesj/tmp_data/jrc_mus-liver-zon-1.n5",
+    #     "volumes/predictions/cells",
+    #     "background",
+    #     # cube(10),
+    #     cube(3),
+    # ),
 ]
+bad_id_ratio = 0.01
 
 # =========
 array_in = open_ds(input_file, dataset)
-masks = []
-for mask_file, mask_dataset, mask_type, structure_element in mask_settings:
-    mask = open_ds(mask_file, mask_dataset)
-    masks.append((mask, mask_type, structure_element))
 voxel_size = array_in.voxel_size
 block_size = np.array(array_in.data.chunks) * np.array(voxel_size)
 write_size = daisy.Coordinate(block_size)
 context = daisy.Coordinate(np.array(voxel_size) * context_padding)
-
 write_roi = daisy.Roi((0,) * len(write_size), write_size)
 read_roi = write_roi.grow(context, context)
-total_roi = array_in.roi.grow(context, context)
+total_roi = array_in.roi
+# total_roi = daisy.Roi((172800, 38400, 44800), voxel_size * 1024)
+# total_roi = daisy.Roi(
+#     voxel_size * daisy.Coordinate(17329, 9978, 7708), voxel_size * 2048
+# )
 
 num_voxels_in_block = (read_roi / array_in.voxel_size).size
-
-# try:
-#     array_out = open_ds(output_file, out_dataset, mode="a")
-# except KeyError:
-#     array_out = prepare_ds(
-#         output_file,
-#         out_dataset,
-#         total_roi,
-#         voxel_size=voxel_size,
-#         write_size=write_size,
-#         dtype=np.uint64,
-#     )
+masks = []
+for mask_file, mask_dataset, mask_type, structure_element in mask_settings:
+    mask = open_ds(mask_file, mask_dataset)
+    masks.append((mask, mask_type, structure_element))
 
 
 def segment_function(block):
@@ -111,40 +95,44 @@ def segment_function(block):
             )
             > 0
         )
+        this_mask = dilation(this_mask, structure_element)
         crop_width = (
             (np.array(this_mask.shape) - np.array(instance.shape)) // 2
         ).astype(int)
         crop_width = [[cw, cw] for cw in crop_width]
         this_mask = skimage.util.crop(this_mask, crop_width)
-        this_mask = dilation(this_mask, structure_element)
         all_mask[this_mask] = 1
     print(f"done making mask, shape: {all_mask.shape}")
 
-    # find ids of peroxisomes that overlap with unwanted object classes
-    # bad_ids = np.unique(instance[all_mask])
-    # print("bad ids")
-    # set bad ids to 0
-    # for id in bad_ids:
-    #     instance[instance == id] = 0
-    # faster
-    # bad_id_mask = np.isin(instance, bad_ids)
-    # print("bad id mask")
+    # Find ids of objects that overlap with unwanted object classes
+    bad_ids = instance[all_mask > 0]
+    bad_ids = np.unique(bad_ids)
 
-    # Set all bad ids to 0
-    # instance[all_mask] = 0
-    instance[all_mask == 1] = 0
+    # Set bad ids to 0
+    for id in bad_ids:
+        ratio = np.sum(all_mask[instance == id]) / np.sum(instance == id)
+        if ratio > bad_id_ratio:
+            instance[instance == id] = 0
+        # instance[instance == id] = 0
+    print("done bad ids, elimated %d ids" % len(bad_ids))
+
+    instance[all_mask > 0] = 0
     print("done masking")
-    # remove small objects
-    # instance = skimage.morphology.remove_small_objects(
-    #     instance, min_size=int(np.ceil(min_size))
-    # )
+
+    # # Remove small objects
+    # instance = skimage.morphology.remove_small_objects(instance, min_size=int(min_size))
     for id in np.unique(instance):
         if np.sum(instance == id) < min_size:
             instance[instance == id] = 0
     print("done remove small")
-    # relabel objects to smallest range of integers
+
+    # Relabel objects to smallest range of integers
     instance = skimage.measure.label(instance)
     print("done relabel")
-    # print("done relabel", instance.shape)
+
+    # # dilate result
+    # structure_element = ball(3)
+    # instance = dilation(instance, structure_element)
+    # print("done dilate")
 
     return instance.astype(np.uint64)
