@@ -10,6 +10,7 @@ from skimage.morphology import dilation, cube
 import skimage.util
 from funlib.persistence import open_ds, prepare_ds
 import daisy
+from zarr.errors import PathNotFoundError
 
 
 input_file = (
@@ -40,8 +41,8 @@ mask_settings = [
         cube(1),
     ),
     (
-        "/nrs/cellmap/rhoadesj/tmp_data/jrc_mus-liver-zon-1.n5",
-        "volumes/predictions/cells",
+        "/nrs/cellmap/data/jrc_mus-liver-zon-1/staging/jrc_mus-liver-zon-1_prediction_edits.zarr",
+        "s0",
         "background",
         cube(10),
     ),
@@ -57,7 +58,11 @@ mask_settings = [
 array_in = open_ds(input_file, dataset)
 masks = []
 for mask_file, mask_dataset, mask_type, structure_element in mask_settings:
-    mask = open_ds(mask_file, mask_dataset)
+    try:
+        mask = open_ds(mask_file, mask_dataset)
+    except PathNotFoundError as e:
+        print(f"Mask {mask_dataset} not found in {mask_file}")
+        raise e
     masks.append((mask, mask_type, structure_element))
 voxel_size = array_in.voxel_size
 block_size = np.array(array_in.data.chunks) * np.array(voxel_size)
@@ -67,7 +72,12 @@ context = daisy.Coordinate(np.array(voxel_size) * context_padding)
 write_roi = daisy.Roi((0,) * len(write_size), write_size)
 read_roi = write_roi.grow(context, context)
 total_roi = array_in.roi.grow(context, context)
-
+# ======== TEST ROI:
+# total_roi = daisy.Roi((172800, 38400, 44800), voxel_size * 1024)
+# total_roi = daisy.Roi(
+#     voxel_size * daisy.Coordinate(17329, 9978, 7708), voxel_size * 2048
+# )
+# ===========
 num_voxels_in_block = (read_roi / array_in.voxel_size).size
 
 # try:
@@ -89,6 +99,7 @@ def segment_function(block):
     # make mask of unwanted object class overlaps
     all_mask = np.zeros(instance.shape, dtype=np.uint8)
     for mask, mask_type, structure_element in masks:
+        # get mask for this block expanding to fit mask voxel size
         this_read_roi = block.read_roi.snap_to_grid(mask.voxel_size, mode="grow")
         if mask_type == "foreground":
             this_mask = mask.to_ndarray(this_read_roi, fill_value=0) > 0
@@ -96,7 +107,7 @@ def segment_function(block):
             this_mask = mask.to_ndarray(this_read_roi, fill_value=0) == 0
         else:
             raise ValueError(f"Unknown mask type {mask_type}")
-        # RESIZE MASK TO MATCH VOXEL SIZE THEN CROP TO MATCH BLOCK
+        # RESIZE MASK TO MATCH INSTANCE VOXEL SIZE THEN CROP TO MATCH BLOCK
         resampled_shape = this_read_roi.shape / voxel_size
         this_mask = (
             resize(
@@ -134,7 +145,7 @@ def segment_function(block):
     # instance[all_mask] = 0
     instance[all_mask == 1] = 0
     print("done masking")
-    # remove small objects
+    # remove small objects << CRASHES HERE ?? >>
     # instance = skimage.morphology.remove_small_objects(
     #     instance, min_size=int(np.ceil(min_size))
     # )
