@@ -48,10 +48,10 @@ def segment_blockwise():
     global total_roi, read_roi, write_roi, tmp_prefix, num_workers, num_cpus, log_file_path, context
     if os.path.exists(os.path.join(output_file, out_dataset)):
         print("Output dataset already exists.")
-        for i in range(10):
-            print(f"Deleting in {10-i} seconds...")
-            time.sleep(1)
-        os.system(f"rm -rf {output_file}/{out_dataset}")
+        # for i in range(10):
+        #     print(f"Deleting in {10-i} seconds...")
+        #     time.sleep(1)
+        # os.system(f"rm -rf {output_file}/{out_dataset}")
     array_out = prepare_ds(
         output_file,
         out_dataset,
@@ -59,6 +59,7 @@ def segment_blockwise():
         voxel_size=voxel_size,
         write_size=write_size,
         dtype=np.uint64,
+        delete=True,
     )
 
     print("Starting segmentation...")

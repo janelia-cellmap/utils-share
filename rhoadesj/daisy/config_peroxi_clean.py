@@ -71,7 +71,7 @@ context = daisy.Coordinate(np.array(voxel_size) * context_padding)
 
 write_roi = daisy.Roi((0,) * len(write_size), write_size)
 read_roi = write_roi.grow(context, context)
-total_roi = array_in.roi.grow(context, context)
+total_roi = array_in.roi
 # ======== TEST ROI:
 # total_roi = daisy.Roi((172800, 38400, 44800), voxel_size * 1024)
 # total_roi = daisy.Roi(
