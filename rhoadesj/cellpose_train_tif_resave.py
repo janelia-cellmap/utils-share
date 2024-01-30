@@ -8,19 +8,10 @@ from pathlib import Path
 
 
 # dataset = "jrc_mus-liver-zon-2"
-# base_folder = "/prfs/cellmap/cellmap/annotations/amira/{dataset}/whole_cell_single_slices/".format(
-#     dataset=dataset
-# )
-# output_folder = (
-#     "/nrs/cellmap/rhoadesj/tmp_data/whole_cell_single_slices/{dataset}".format(
-#         dataset=dataset
-#     )
-# )
-
-# dataset = "jrc_22ak351-leaf-3r/crop361"
-# dataset = "jrc_22ak351-leaf-3m/crop352"
-dataset = "jrc_22ak351-leaf-2l/crop350"
-base_folder = "/prfs/cellmap/cellmap/annotations/amira/{dataset}/wholecell-2d/".format(
+# dataset = "jrc_mus-liver-3"
+# dataset = "jrc_mus-pancreas-4"
+dataset = "jrc_mus-heart-1"
+base_folder = "/prfs/cellmap/cellmap/annotations/amira/{dataset}/whole_cell_single_slices/".format(
     dataset=dataset
 )
 output_folder = (
@@ -28,6 +19,18 @@ output_folder = (
         dataset=dataset
     )
 )
+
+# dataset = "jrc_22ak351-leaf-3r/crop361"
+# dataset = "jrc_22ak351-leaf-3m/crop352"
+# dataset = "jrc_22ak351-leaf-2l/crop350"
+# base_folder = "/prfs/cellmap/cellmap/annotations/amira/{dataset}/wholecell-2d/".format(
+#     dataset=dataset
+# )
+# output_folder = (
+#     "/nrs/cellmap/rhoadesj/tmp_data/whole_cell_single_slices/{dataset}".format(
+#         dataset=dataset
+#     )
+# )
 
 os.makedirs(output_folder, exist_ok=True)
 seg_input_prefix = "slice_"

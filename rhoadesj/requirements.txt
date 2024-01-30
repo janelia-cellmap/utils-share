@@ -1,0 +1,7 @@
+tifffile
+zarr
+numcodecs
+tqdm
+numpy
+parse
+ipykernel
