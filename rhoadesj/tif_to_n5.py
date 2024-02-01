@@ -42,17 +42,17 @@ conversion_dict_list = [
     },
 ]
 
-conversion_dict_list = [
-    {
-        "image_path": "/nearline/mengwang/FIB-SEM_RAW/JRC_MP-P1-E5-S2_4x4nm_tif_8bit/JRC_MP-P1-E5-S2_4X4_8bit-tif_stack (BW25113).tif",
-        "n5_path": "/nrs/cellmap/rhoadesj/tmp_data/JRC_MP-P1-E5-S2.zarr",
-        "dataset_name": "volumes/raw",
-        "resolution": (4, 4, 4),
-        "offset": (0, 0, 0),
-        "overwrite": True,
-        "dtype": np.uint8,
-    },
-]
+# conversion_dict_list = [
+#     {
+#         "image_path": "/nearline/mengwang/FIB-SEM_RAW/JRC_MP-P1-E5-S2_4x4nm_tif_8bit/JRC_MP-P1-E5-S2_4X4_8bit-tif_stack (BW25113).tif",
+#         "n5_path": "/nrs/cellmap/rhoadesj/tmp_data/JRC_MP-P1-E5-S2.zarr",
+#         "dataset_name": "volumes/raw",
+#         "resolution": (4, 4, 4),
+#         "offset": (0, 0, 0),
+#         "overwrite": True,
+#         "dtype": np.uint8,
+#     },
+# ]
 
 
 def tif_to_n5(
