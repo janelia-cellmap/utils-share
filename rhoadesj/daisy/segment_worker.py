@@ -22,7 +22,6 @@ def segment_worker(tmpdir):
             segmentation = segment_function(block)
 
             print("========= block %d ====== " % block.block_id[1])
-            print(segmentation)
 
             assert segmentation.dtype == np.uint64
 

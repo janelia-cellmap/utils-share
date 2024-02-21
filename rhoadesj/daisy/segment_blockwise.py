@@ -158,6 +158,7 @@ def segment_blockwise():
             num_workers=num_workers,
             fit="shrink",
             timeout=10,
+            read_write_conflict=False,
         )
 
         daisy.run_blockwise([task])

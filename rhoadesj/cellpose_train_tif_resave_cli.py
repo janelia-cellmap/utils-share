@@ -9,6 +9,9 @@ from PIL import Image
 
 
 def main(base_folder, output_folder, dataset):
+    print(f"base_folder: {base_folder}")
+    print(f"output_folder: {output_folder}")
+    print(f"dataset: {dataset}")
     os.makedirs(output_folder, exist_ok=True)
     seg_input_prefix = "slice_"
     raw_input_prefix = "raw_"
@@ -66,7 +69,7 @@ if __name__ == "__main__":
         help="Output folder path, such as '/nrs/cellmap/rhoadesj/tmp_data/whole_cell_single_slices/jrc_mus-heart-1'",
     )
     parser.add_argument(
-        "--dataset",
+        "dataset",
         help="Dataset name, such as 'jrc_mus-heart-1'",
     )
     args = parser.parse_args()
