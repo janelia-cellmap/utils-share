@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "mrc-to-zarr"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+dask = "^2023.3.2"
+mrcfile = "^1.5.0"
+numcodecs = "^0.12.1"
+fibsem-tools = "^6.3.2"
+zarr = "^2.16.1"
+bokeh = "^3.3.4"
+dask-jobqueue = "^0.8.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
