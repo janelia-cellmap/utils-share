@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "zarr-multiscale"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+bokeh = "^3.3.2"
+xarray-multiscale = "^2.1.0"
+numpy = "^1.26.2"
+zarr = "^2.16.1"
+dask = {extras = ["distributed"], version = "^2023.12.0"}
+dask-jobqueue = "^0.8.2"
+tifffile = "^2023.12.9"
+numcodecs = "^0.12.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
