@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "n5-to-zarr"
+version = "0.1.0"
+description = ""
+authors = ["Yurii Zubov <zubov452@gmail.com>"]
+readme = "README.md"
+packages = [{include = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+numpy = "^1.25.2"
+dask = {extras = ["distributed"], version = "^2023.8.1"}
+zarr = "^2.16.0"
+click = "^8.1.6"
+pydantic-zarr = "^0.4.0"
+numcodecs = "^0.11.0"
+dask-jobqueue = "^0.8.2"
+natsort = "^8.4.0"
+bokeh = "^3.4.0"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

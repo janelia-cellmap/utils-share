@@ -1,6 +1,7 @@
 # %%
 import argparse
 from pathlib import Path
+from glob import glob
 from typing import Iterable, Union
 import tifffile
 import zarr
@@ -41,23 +42,38 @@ conversion_dict_list = [
     },
 ]
 
+# conversion_dict_list = [
+#     {
+#         "image_path": "/nearline/mengwang/FIB-SEM_RAW/JRC_MP-P1-E5-S2_4x4nm_tif_8bit/JRC_MP-P1-E5-S2_4X4_8bit-tif_stack (BW25113).tif",
+#         "n5_path": "/nrs/cellmap/rhoadesj/tmp_data/JRC_MP-P1-E5-S2.zarr",
+#         "dataset_name": "volumes/raw",
+#         "resolution": (4, 4, 4),
+#         "offset": (0, 0, 0),
+#         "overwrite": True,
+#         "dtype": np.uint8,
+#     },
+# ]
+
 
 def tif_to_n5(
-    image_path: Path | str | None = None,
-    n5_path: Path | str | None = None,
-    dataset_name: str | None = None,
-    resolution: int | float | Iterable = 8,
-    offset: Iterable = [0, 0, 0],
-    chunk_size: int = 128,
-    ndims: int = 3,
+    image_path=None,
+    n5_path=None,
+    dataset_name=None,
+    resolution=8,
+    offset=[0, 0, 0],
+    chunk_size=128,
+    ndims=3,
     overwrite: bool = False,
-    dtype: np.dtype | None = None,
+    dtype=None,
 ):
     if image_path is None:
         for conversion_dict in tqdm(conversion_dict_list):
             tif_to_n5(**conversion_dict)
         return
     image_path = Path(image_path)
+    if not image_path.exists():
+        image_path = Path(glob(str(image_path) + "*")[0])
+        assert image_path.exists()
     if n5_path is None:
         n5_path = image_path.parent / (image_path.name.removesuffix(".tif") + ".n5")
         dataset_name = "volume"
@@ -107,6 +123,8 @@ def tif_to_n5(
     logger.info("\tDone")
 
 
+# %%
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--image_path", type=str, required=False, default=None)
@@ -122,3 +140,5 @@ if __name__ == "__main__":
         # args.image_path, args.n5_path, args.dataset_name, args.resolution, args.offset
         **vars(args)
     )
+
+# %%

@@ -7,7 +7,10 @@ import shutil
 from pathlib import Path
 
 
-dataset = "jrc_mus-liver-zon-2"
+# dataset = "jrc_mus-liver-zon-2"
+# dataset = "jrc_mus-liver-3"
+# dataset = "jrc_mus-pancreas-4"
+dataset = "jrc_mus-heart-1"
 base_folder = "/prfs/cellmap/cellmap/annotations/amira/{dataset}/whole_cell_single_slices/".format(
     dataset=dataset
 )
@@ -16,6 +19,19 @@ output_folder = (
         dataset=dataset
     )
 )
+
+# dataset = "jrc_22ak351-leaf-3r/crop361"
+# dataset = "jrc_22ak351-leaf-3m/crop352"
+# dataset = "jrc_22ak351-leaf-2l/crop350"
+# base_folder = "/prfs/cellmap/cellmap/annotations/amira/{dataset}/wholecell-2d/".format(
+#     dataset=dataset
+# )
+# output_folder = (
+#     "/nrs/cellmap/rhoadesj/tmp_data/whole_cell_single_slices/{dataset}".format(
+#         dataset=dataset
+#     )
+# )
+
 os.makedirs(output_folder, exist_ok=True)
 seg_input_prefix = "slice_"
 raw_input_prefix = "raw_"
@@ -37,7 +53,10 @@ for folder in folders:
         )
         slice_num = Path(seg_file).stem.removeprefix(seg_input_prefix)
         try:
-            out_raw = os.path.join(output_folder, f"{dataset}_{folder}_{slice_num}.tif")
+            out_raw = os.path.join(
+                output_folder,
+                f"{dataset.replace(os.sep, '_')}_{folder}_{slice_num}.tif",
+            )
             raw = np.array(Image.open(raw_file))
             print(f"\t\tRaw shape: {raw.shape}")
             assert raw.shape == seg.shape
@@ -46,7 +65,10 @@ for folder in folders:
         except Exception as e:
             print(f"\t\tFailed to resave {raw_file} to {out_raw}\n\t{e}")
             continue
-        out_seg = os.path.join(output_folder, f"{dataset}_{folder}_{slice_num}_seg.npy")
+        out_seg = os.path.join(
+            output_folder,
+            f"{dataset.replace(os.sep, '_')}_{folder}_{slice_num}_seg.npy",
+        )
         # out_seg = os.path.join(output_folder, f"{dataset}_{folder}_{slice_num}_seg.tif")
         print(f"\tSaving {out_seg}...")
         np.save(out_seg, np.array({"masks": seg, "outlines": [], "filename": out_raw}))
