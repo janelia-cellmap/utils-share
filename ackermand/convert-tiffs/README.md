@@ -4,7 +4,7 @@ Amira can only handle 8-bit segmentations, but often we have more objects than 2
 ## Installation
 To install, first download `graph_recoloring.py` and `graph_recoloring_environment.yaml`. Next, perform the following steps:
 
-1. Create a new conda environment: `conda create -n myenv python=3.9`
+1. Create a new conda environment: `conda create -n myenv python=3.11`
 2. Activate the environment: `conda activate myenv`
 3. Update the environment with the required dependencies: `conda env update --file graph_recoloring_environment.yml`
 

@@ -2,7 +2,7 @@ import numpy as np
 import pickle
 import os
 import tifffile
-from funlib.segment import arrays
+import fastremap
 import networkx as nx
 from pathlib import Path
 import itertools
@@ -11,7 +11,6 @@ from tqdm import tqdm
 
 def get_touching_ids(file_path, output_dir):
     print(f"Reading file {file_path}")
-    # file_path = "/groups/cellmap/cellmap/annotations/amira/jrc_22ak351-leaf-3m/crop352/cellpose/raw_s4_inverted_cp_masks.tif"
     im = tifffile.imread(file_path)
     print(f"Reading file {file_path} complete!")
 
@@ -48,7 +47,7 @@ def get_touching_ids(file_path, output_dir):
                         else (shifted_im_value, im_value)
                     )
             # print(len(set_of_touching_ids))
-    print(f"Getting touching complete!")
+    print(f"Getting touching objects complete!")
 
     os.makedirs(output_dir, exist_ok=True)
     with open(f"{output_dir}/{file_name}_set_of_touching_ids.pkl", "wb") as handle:
@@ -69,7 +68,12 @@ def graph_recolor_segmentation(file_path, output_dir):
     output_im = im.copy()
     if output_im.dtype == np.uint8:
         output_im = output_im.astype(np.uint16)
-    arrays.replace_values(output_im, old_values, new_values, inplace=True)
+    fastremap.remap(
+        output_im,
+        dict(zip(old_values, new_values)),
+        preserve_missing_labels=True,
+        in_place=True,
+    )
     output_im = output_im.astype(np.uint8)
     os.makedirs(output_dir, exist_ok=True)
     tifffile.imwrite(
